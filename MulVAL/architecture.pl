@@ -1,10 +1,24 @@
 /* Attack goal */
-attackGoal(canSpoof(feedbackFlow4)).
+attackGoal(canPrivEsc(controlFlow4)).
+attackGoal(canDoS(controlFlow1)).
 
 /* Attacker location */
-attackerLocated(coverZone).
+attackerLocated(logicalAdversary).
+attackerPrivilege(directAttacks).
 
-/* Control flow satellite to GPS Module */
-controlFlow(satellite, gpsModule, feedbackFlow4).
-physicalLayer(nmea0183, gpsModule, satellite).
-weaknessPhysicalLayer(ac7, nmea0183, coverZone).
+/* Vuln */
+weaknessExist(interruptDispacter, cwe20).
+weaknessExist(interruptDispacter, cwe754).
+weaknessExist(securityContext, cwe119).
+
+/* Control flows */
+controlFlow(runtimeEnviroment, interruptDispacter, controlFlow1).
+controlFlow(domainSecurityManager, interruptDispacter, controlFlow5).
+controlFlow(interruptDispacter, securityContext, controlFlow3).
+controlFlow(interruptDispacter, securityContext, controlFlow6).
+controlFlow(securityContext, pmp, controlFlow4).
+controlFlow(securityContext, pmp, controlFlow7).
+
+feedbackFlow(interruptDispacter, runtimeEnviroment, feedbackFlow3).
+feedbackFlow(interruptDispacter, domainSecurityManager, feedbackFlow2).
+feedbackFlow(domainManager, interruptDispacter, feedbackFlow1).

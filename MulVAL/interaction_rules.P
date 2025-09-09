@@ -26,6 +26,7 @@ primitive(vulExists(_host, _vulID, _program)).
 primitive(vulProperty(_vulID, _range, _consequence)).
 primitive(hacl(_src, _dst, _prot, _port)).
 primitive(attackerLocated(_host)).
+primitive(attackerPrivilege(_priv)).
 primitive(hasAccount(_principal, _host, _account)).
 primitive(networkServiceInfo(_host, _program, _protocol, _port, _user)).
 primitive(setuidProgramInfo(_host, _program, _owner)).
@@ -44,6 +45,8 @@ primitive(controlFlow(_source, _destination, _flow)).
 primitive(weaknessPhysicalLayer(_sc, _protocol, _range)).
 primitive(physicalLayer(_protocol, _host1, _host2)).
 
+primitive(weaknessExist(_program, _cwe)).
+
 derived(execCode(_host, _user)).
 derived(netAccess(_machine,_protocol,_port)).
 derived(canAccessHost(_host)).
@@ -54,7 +57,14 @@ derived(dos(_host)).
 derived(logInService(_host, _protocol, _port)).
 
 derived(wirelessCompromise(_host1)).
+
 derived(canSpoof(_flow)).
+derived(canPrivEsc(_flow)).
+derived(canDoS(_flow)).
+
+derived(t1499(_host1)).
+derived(t1556(_host1)).
+derived(t1562(_host1)).
 
 meta(attackGoal(_)).
 meta(advances(_, _)).
@@ -65,6 +75,8 @@ meta(advances(_, _)).
 /******************************************************/
 
 :- table canSpoof/1.
+:- table canPrivEsc/1.
+:- table canDoS/1.
 :- table execCode/2.
 :- table netAccess/3.
 :- table canAccessHost/1.
@@ -77,6 +89,40 @@ meta(advances(_, _)).
 /******************************************************/
 /****         Interaction Rules                   *****/
 /******************************************************/
+
+interaction_rule(
+    (t1562(Host) :-
+   	 attackerLocated(logicalAdversary),
+     attackerPrivilege(directAttacks),
+     weaknessExist(_, cwe20)),
+    rule_desc('Impair Defenses', 'certain')).
+
+interaction_rule(
+    (t1556(Host) :-
+     t1562(interruptDispacter),
+     controlFlow(securityContext, pmp, _),
+     weaknessExist(_, cwe119)),
+    rule_desc('Modify Authentication Process', 'certain')).
+
+interaction_rule(
+    (t1499(Host) :-
+   	 attackerLocated(logicalAdversary),
+     attackerPrivilege(directAttacks),
+     weaknessExist(_, cwe754)),
+    rule_desc('Endpoint Denial of Service', 'certain')).
+
+interaction_rule(
+    (canDoS(Flow) :-
+     t1499(interruptDispacter),
+     controlFlow(_, interruptDispacter, Flow)),
+    rule_desc('Denial of Service', 'certain')).
+
+
+interaction_rule(
+    (canPrivEsc(Flow) :-
+   	 t1556(pmp),
+     controlFlow(_, _, Flow)),
+    rule_desc('Privilege Escalation', 'certain')).
 
 interaction_rule(
    (wirelessCompromise(Host) :-
