@@ -1,10 +1,23 @@
 # flake8: noqa: E501
+import re
+from typing import List
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from utils import DAnalysis, DView, DRepresentationDescriptor, DSemanticDiagram, DNode, DEdge
-
+import psycopg2
 PROJECT_DIR = Path("GCAP_NTP241_UNINA")
 REQUIRED_PLUGINS = {"com.thalesgroup.mde.capella.stpa", "org.polarsys.capella.cybersecurity"}
+
+
+def get_db_conn():
+
+    return psycopg2.connect(
+        dbname="mydb",
+        user="myuser",
+        password="mypassword",
+        host="localhost",
+        port="5432"
+    )
 
 
 def load_project(project_dir: Path) -> tuple[ET.ElementTree, ET.ElementTree]:
@@ -178,6 +191,158 @@ def extract_STPA(hcs_dsemantic: ET.Element) -> tuple[list[DNode], list[DEdge]]:
 
     return nodes, edges
 
+
+
+def resolve_edge_names(nodes: List[DNode], edges: List[DEdge]) -> None:
+    """Resolve and assign names for edges based on node mappings.
+
+    Args:
+        nodes (list[DNode]): List of node objects.
+        edges (list[DEdge]): List of edge objects (modified in place).
+    """
+    uid_to_name = {n.uid: n.name for n in nodes}
+
+    for e in edges:
+
+        if e.source_uid in uid_to_name:
+            e.source_name = uid_to_name[e.source_uid]
+        if e.target_uid in uid_to_name:
+            e.target_name = uid_to_name[e.target_uid]
+
+
+def edges_to_controlflow_facts(edges) -> list[str]:
+    """Convert edges into controlFlow facts for analysis.
+
+    Args:
+        edges (list[DEdge]): List of edges with resolved names or UIDs.
+
+    Returns:
+        list[str]: Generated controlFlow facts as strings.
+    """
+    
+    facts: list[str] = []
+    for e in edges:
+
+        src = _to_atom(getattr(e, "source_name", None) or e.source_uid, "unknown_src")
+        tgt = _to_atom(getattr(e, "target_name", None) or e.target_uid, "unknown_tgt")
+        lbl = _to_atom(e.name or e.uid, "edge")
+        facts.append(f"controlFlow({src}, {tgt}, {lbl}).")
+    
+    return facts
+
+
+def extract_protocols(edges: List[DEdge]) -> list[str]:
+    """Extract bracketed protocol names from edge names.
+
+    Args:
+        edges (list[DEdge]): List of edge objects. 
+
+    Returns:
+        list[str]: All extracted protocol names.
+    """
+    protocols: list[str] = []
+
+    for e in edges:
+        if not e.name:
+            continue
+
+        match = re.search(r"\[(.*?)\]", e.name)
+        if match:
+            e.bracket_name = match.group(1)
+            protocols.append(e.bracket_name)
+
+    return protocols
+
+
+def _to_atom(s: str | None, fallback: str = "unknown") -> str:
+    """Normalize a string into a safe atom identifier.
+
+    - Converts to lowercase.
+    - Replaces non-word characters with underscores.
+    - Collapses multiple underscores and trims them.
+    - Ensures the result starts with a letter (prefixes 'x_' if needed).
+    - Falls back to a default string if input is None or empty.
+
+    Args:
+        s (str | None): Input string to normalize.
+        fallback (str): Value to use if input is invalid or empty.
+
+    Returns:
+        str: Normalized atom string.
+    """
+    
+    if not s:
+        s = fallback
+    s = s.lower()
+    s = re.sub(r"[^\w]+", "_", s)        # non-word -> _
+    s = re.sub(r"_+", "_", s).strip("_") # collapse/trim _
+    if not s:
+        s = fallback
+    if not re.match(r"^[a-z]", s):
+        s = "x_" + s
+    return s
+
+
+def db_to_facts(bracket_names: list[str]) -> list[str]:
+    """Extract facts (physicalLayer, weaknessPhysicalLayer, attackGoal) from the database.
+
+    Args:
+        bracket_names (list[str]): Protocol identifiers to filter.
+
+    Returns:
+        list[str]: Generated fact strings.
+    """
+    facts: list[str] = []
+
+    if not bracket_names:
+        return facts
+
+    try:
+        with get_db_conn() as conn, conn.cursor() as cur:
+            placeholders = ",".join(["%s"] * len(bracket_names))
+
+            # physicalLayer facts
+            cur.execute(f"""
+                SELECT p.protocol, pl.dest, pl.source, p.layer
+                FROM physical_layer pl
+                JOIN protocols p ON pl.protocol = p.protocol
+                WHERE p.protocol IN ({placeholders})
+                ORDER BY p.protocol, pl.dest, pl.source;
+            """, bracket_names)
+            for protocol, dest, source, layer in cur.fetchall():
+                facts.append(
+                    f"physicalLayer({_to_atom(protocol)}, {_to_atom(dest)}, {_to_atom(source)}, {_to_atom(layer)})."
+                )
+
+            # weaknessPhysicalLayer facts
+            cur.execute(f"""
+                SELECT vulnerability, protocol, zone
+                FROM weakness_physical_layer
+                WHERE protocol IN ({placeholders})
+                ORDER BY vulnerability;
+            """, bracket_names)
+            for vuln, protocol, zone in cur.fetchall():
+                facts.append(
+                    f"weaknessPhysicalLayer({_to_atom(vuln)}, {_to_atom(protocol)}, {_to_atom(zone)})."
+                )
+
+            # attackGoal facts
+            cur.execute("""
+                SELECT goal_type, target
+                FROM attack_goals
+                ORDER BY id;
+            """)
+            for goal_type, target in cur.fetchall():
+                facts.append(
+                    f"attackGoal({_to_atom(goal_type)}({_to_atom(target)}))."
+                )
+
+    except Exception as e:
+        print(f"[WARN] Skipping DB extraction: {e}")
+
+    return facts
+
+
 if __name__ == "__main__":
 
     afm_tree, aird_tree = load_project(PROJECT_DIR)
@@ -190,3 +355,14 @@ if __name__ == "__main__":
     hcs_dsemantic = return_dsemantic(root, HCS_id)
     nodes, edges = extract_STPA(hcs_dsemantic)
        
+    resolve_edge_names(nodes, edges)
+    facts = edges_to_controlflow_facts(edges)
+
+    protocols = extract_protocols(edges)
+    print(protocols)
+
+    facts += db_to_facts(protocols)
+
+    out_file = Path("interactions.pl")
+    out_file.write_text("\n".join(facts) + "\n", encoding="utf-8")
+
