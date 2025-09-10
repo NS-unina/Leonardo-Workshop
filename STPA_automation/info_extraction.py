@@ -377,6 +377,31 @@ def db_to_facts(bracket_names: list[str]) -> list[str]:
     return facts
 
 
+def extract_attacks(attack_goal):
+
+    threat_goal = []
+    facts = []
+
+    for elem in edges_thm: 
+        # print(elem)
+        if elem.target_name == "fb_03_gps_position_nmea0183":
+            threat_goal = elem.source_uid
+
+    # print(threat_goal)
+
+    for elem in edges_thm:
+        if elem.source_uid == threat_goal:
+            if elem.target_name is not None and elem.target_name != attack_goal:
+                facts.append("attackerLocated("+elem.target_name+").")
+
+    for elem in nodes_thm:
+        if elem.uid == threat_goal:
+            facts.append("attackGoal("+elem.name.split('\n')[0]+"("+attack_goal+")).")
+
+    return facts
+
+
+
 if __name__ == "__main__":
 
     afm_tree, aird_tree = load_project(PROJECT_DIR)
@@ -393,7 +418,6 @@ if __name__ == "__main__":
     facts = edges_to_controlflow_facts(edges)
 
     protocols = extract_protocols(edges)
-    print(protocols)
 
     facts += db_to_facts(protocols)
 
@@ -405,24 +429,9 @@ if __name__ == "__main__":
 
     attack_goal = "fb_03_gps_position_nmea0183"
 
-    threat_goal = []
-
-    for elem in edges_thm: 
-        # print(elem)
-        if elem.target_name == "fb_03_gps_position_nmea0183":
-            threat_goal = elem.source_uid
-
-    # print(threat_goal)
-
-    for elem in edges_thm:
-        if elem.source_uid == threat_goal:
-            if elem.target_name is not None and elem.target_name != attack_goal:
-                facts.append("attackerLocated("+elem.target_name+").")
-
-    for elem in nodes_thm:
-        if elem.uid == threat_goal:
-            id_attack_goal = elem.uid
-            facts.append("attackGoal("+elem.name.split('\n')[0]+"("+attack_goal+")).")
+    facts += extract_attacks(attack_goal)
 
     out_file = Path("interactions.pl")
     out_file.write_text("\n".join(facts) + "\n", encoding="utf-8")
+
+    print("Done!")
