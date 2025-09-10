@@ -32,7 +32,7 @@
 <vertices>
 <vertex>
 <id>1</id>
-<fact>canspoof(fb_03_gps_position_nmea0183)</fact>
+<fact>can_spoof(fb_03_gps_position_nmea0183)</fact>
 <metric>0</metric>
 <type>OR</type>
 </vertex>
@@ -62,7 +62,7 @@
 </vertex>
 <vertex>
 <id>6</id>
-<fact>weaknessPhysicalLayer(ac7,nmea0183,coverzone)</fact>
+<fact>weaknessPhysicalLayer(ac7,nmea0183,cover_zone)</fact>
 <metric>1</metric>
 <type>LEAF</type>
 </vertex>
@@ -74,7 +74,7 @@
 </vertex>
 <vertex>
 <id>8</id>
-<fact>attackerLocated(coverzone)</fact>
+<fact>attackerLocated(cover_zone)</fact>
 <metric>1</metric>
 <type>LEAF</type>
 </vertex>

@@ -43,7 +43,7 @@ derived(principalCompromised,1).
 derived(logInService,3).
 derived(accessMaliciousInput,3).
 derived(canTamper,1).
-derived(canspoof,1).
+derived(can_spoof,1).
 derived(arpPoisoning,2).
 derived(wirelessCompromise,1).
 derived(moduleFirmware,1).
@@ -54,9 +54,9 @@ derived(netVisibility,1).
 meta(attackGoal,1).
 meta(advances,2).
 
-attack(canspoof(fb_03_gps_position_nmea0183)).
+attack(can_spoof(fb_03_gps_position_nmea0183)).
 
-possible_duplicate_trace_step(because(0,rule_desc('Inital Access',certain),wirelessCompromise(c_05_geolocation_system),[weaknessPhysicalLayer(ac7,nmea0183,coverzone),physicalLayer(nmea0183,c_05_geolocation_system,c_06_gnss_source),attackerLocated(coverzone)])).
+possible_duplicate_trace_step(because(0,rule_desc('Inital Access',certain),wirelessCompromise(c_05_geolocation_system),[weaknessPhysicalLayer(ac7,nmea0183,cover_zone),physicalLayer(nmea0183,c_05_geolocation_system,c_06_gnss_source),attackerLocated(cover_zone)])).
 
-possible_duplicate_trace_step(because(10,rule_desc('Evasion',certain),canspoof(fb_03_gps_position_nmea0183),[controlFlow(c_06_gnss_source,c_05_geolocation_system,fb_03_gps_position_nmea0183),wirelessCompromise(c_05_geolocation_system)])).
+possible_duplicate_trace_step(because(10,rule_desc('Evasion',certain),can_spoof(fb_03_gps_position_nmea0183),[controlFlow(c_06_gnss_source,c_05_geolocation_system,fb_03_gps_position_nmea0183),wirelessCompromise(c_05_geolocation_system)])).
 

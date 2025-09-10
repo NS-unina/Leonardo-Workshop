@@ -4,7 +4,7 @@ from typing import List
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from utils import DAnalysis, DView, DRepresentationDescriptor, DSemanticDiagram, DNode, DEdge
-import psycopg2
+import psycopg2 # type: ignore
 PROJECT_DIR = Path("GCAP_NTP241_UNINA")
 REQUIRED_PLUGINS = {"com.thalesgroup.mde.capella.stpa", "org.polarsys.capella.cybersecurity"}
 
@@ -140,7 +140,7 @@ def return_dsemantic(root: ET.Element, id: str) -> ET.Element | None:
         if "DSemanticDiagram" in child.tag:
             dsemantic = parse_dsemantic_diagram(child)
             if dsemantic.uid == target_id:
-                print(dsemantic.uid)
+                # print(dsemantic.uid)
                 return child
     return None
 
@@ -191,6 +191,50 @@ def extract_STPA(hcs_dsemantic: ET.Element) -> tuple[list[DNode], list[DEdge]]:
 
     return nodes, edges
 
+
+def extract_thmodel(hcs_dsemantic: ET.Element) -> tuple[List[DNode], List[DEdge]]:
+    """Extract nodes and edges from a Threat Model DSemanticDiagram.
+
+    Args:
+        hcs_dsemantic (ET.Element): Root XML element of the HCS DSemanticDiagram.
+
+    Returns:
+        tuple[list[DNode], list[DEdge]]: Lists of extracted nodes and edges.
+    """
+
+    def _xmi_type(el: ET.Element) -> str | None:
+        """Return the XMI type attribute if present."""
+        for k, v in el.attrib.items():
+            if k.endswith("type"):
+                return v
+        return None
+
+    nodes: List[DNode] = []
+    edges: List[DEdge] = []
+
+    for ode in hcs_dsemantic.findall(".//{*}ownedDiagramElements"):
+        typ = _xmi_type(ode)
+
+        if typ == "diagram:DNode":
+            nodes.append(
+                DNode(
+                    uid=ode.attrib.get("uid", ""),
+                    name=(ode.attrib.get("name") or "").strip(),
+                    outgoingEdges=ode.attrib.get("outgoingEdges", "")
+                )
+            )
+
+        elif typ == "diagram:DEdge":
+            edges.append(
+                DEdge(
+                    uid=ode.attrib.get("uid", ""),
+                    name=(ode.attrib.get("name") or "").strip() or None,
+                    source_uid=ode.attrib.get("sourceNode"),
+                    target_uid=ode.attrib.get("targetNode"),
+                )
+            )
+
+    return nodes, edges
 
 
 def resolve_edge_names(nodes: List[DNode], edges: List[DEdge]) -> None:
@@ -280,6 +324,7 @@ def _to_atom(s: str | None, fallback: str = "unknown") -> str:
         s = fallback
     if not re.match(r"^[a-z]", s):
         s = "x_" + s
+    
     return s
 
 
@@ -311,7 +356,7 @@ def db_to_facts(bracket_names: list[str]) -> list[str]:
             """, bracket_names)
             for protocol, dest, source, layer in cur.fetchall():
                 facts.append(
-                    f"physicalLayer({_to_atom(protocol)}, {_to_atom(dest)}, {_to_atom(source)}, {_to_atom(layer)})."
+                    f"physicalLayer({_to_atom(protocol)}, {_to_atom(dest)}, {_to_atom(source)})."
                 )
 
             # weaknessPhysicalLayer facts
@@ -324,17 +369,6 @@ def db_to_facts(bracket_names: list[str]) -> list[str]:
             for vuln, protocol, zone in cur.fetchall():
                 facts.append(
                     f"weaknessPhysicalLayer({_to_atom(vuln)}, {_to_atom(protocol)}, {_to_atom(zone)})."
-                )
-
-            # attackGoal facts
-            cur.execute("""
-                SELECT goal_type, target
-                FROM attack_goals
-                ORDER BY id;
-            """)
-            for goal_type, target in cur.fetchall():
-                facts.append(
-                    f"attackGoal({_to_atom(goal_type)}({_to_atom(target)}))."
                 )
 
     except Exception as e:
@@ -363,6 +397,32 @@ if __name__ == "__main__":
 
     facts += db_to_facts(protocols)
 
+    TDB_id = find_diagram(danalysis, "[TDB] Threat Analysis")
+
+    tbd_dsemantic = return_dsemantic(root, TDB_id)
+    nodes_thm, edges_thm = extract_thmodel(tbd_dsemantic)
+    resolve_edge_names(nodes_thm, edges_thm)
+
+    attack_goal = "fb_03_gps_position_nmea0183"
+
+    threat_goal = []
+
+    for elem in edges_thm: 
+        # print(elem)
+        if elem.target_name == "fb_03_gps_position_nmea0183":
+            threat_goal = elem.source_uid
+
+    # print(threat_goal)
+
+    for elem in edges_thm:
+        if elem.source_uid == threat_goal:
+            if elem.target_name is not None and elem.target_name != attack_goal:
+                facts.append("attackerLocated("+elem.target_name+").")
+
+    for elem in nodes_thm:
+        if elem.uid == threat_goal:
+            id_attack_goal = elem.uid
+            facts.append("attackGoal("+elem.name.split('\n')[0]+"("+attack_goal+")).")
+
     out_file = Path("interactions.pl")
     out_file.write_text("\n".join(facts) + "\n", encoding="utf-8")
-

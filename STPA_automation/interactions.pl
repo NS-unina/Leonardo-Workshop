@@ -15,6 +15,7 @@ controlFlow(c_04_camera, c_02_radio_control, fb_09_image_transmission).
 controlFlow(c_03_autopilot, c_10_esc, ca_04_motor_velocity_voltage).
 controlFlow(c_10_esc, c_11_motors, ca_05_motor_velocity_voltage).
 controlFlow(c_11_motors, c_07_physical_process, ca_06_acceleration).
-physicalLayer(nmea0183, c_05_geolocation_system, c_06_gnss_source, physical).
-weaknessPhysicalLayer(ac7, nmea0183, coverzone).
-attackGoal(canspoof(fb_03_gps_position_nmea0183)).
+physicalLayer(nmea0183, c_05_geolocation_system, c_06_gnss_source).
+weaknessPhysicalLayer(ac7, nmea0183, cover_zone).
+attackerLocated(cover_zone).
+attackGoal(can_spoof(fb_03_gps_position_nmea0183)).

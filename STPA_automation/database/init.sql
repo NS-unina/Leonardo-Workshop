@@ -35,7 +35,7 @@ VALUES
 
 INSERT INTO weakness_physical_layer (vulnerability, protocol, zone)
 VALUES 
-    ('ac7', 'nmea0183', 'coverZone');
+    ('ac7', 'nmea0183', 'cover_zone');
 
 INSERT INTO attack_goals (goal_type, target)
 VALUES 

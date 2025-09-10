@@ -1,4 +1,4 @@
-:-(mvTrc(wirelessCompromise(_h3473,0)),','(attackerLocated(coverzone),','(physicalLayer(_h3483,_h3473,_h3485),','(weaknessPhysicalLayer(ac7,_h3483,coverzone),assert_trace(because(0,rule_desc('Inital Access',certain),wirelessCompromise(_h3473),[weaknessPhysicalLayer(ac7,_h3483,coverzone),physicalLayer(_h3483,_h3473,_h3485),attackerLocated(coverzone)])))))).
+:-(mvTrc(wirelessCompromise(_h3473,0)),','(attackerLocated(cover_zone),','(physicalLayer(_h3483,_h3473,_h3485),','(weaknessPhysicalLayer(ac7,_h3483,cover_zone),assert_trace(because(0,rule_desc('Inital Access',certain),wirelessCompromise(_h3473),[weaknessPhysicalLayer(ac7,_h3483,cover_zone),physicalLayer(_h3483,_h3473,_h3485),attackerLocated(cover_zone)])))))).
 
 :-(mvTrc(bruteForceIO(_h3473,1)),','(mvTrc(execCode(_h3478,_h3479,_h3525)),','(mvTrc(networkSniffing(_h3478,_h3473,_h3554)),','(weaknessApplicationLayer(ds2,_h3478,_h3473,msp),assert_trace(because(1,rule_desc('Initial Access',likely),bruteForceIO(_h3473),[weaknessApplicationLayer(ds2,_h3478,_h3473,msp),networkSniffing(_h3478,_h3473),execCode(_h3478,_h3479)])))))).
 
@@ -18,17 +18,17 @@
 
 :-(mvTrc(networkSniffing(_h3473,_h3474,9)),','(mvTrc(execCode(_h3473,root,_h3526)),','(trafficVisibility(_h3473,_h3486),','(weaknessApplicationLayer(ds2,_h3486,_h3474,_h3491),assert_trace(because(9,rule_desc('Impact',certain),networkSniffing(_h3473,_h3474),[weaknessApplicationLayer(ds2,_h3486,_h3474,_h3491),trafficVisibility(_h3473,_h3486),execCode(_h3473,root)])))))).
 
-:-(mvTrc(canspoof(_h3473,10)),','(mvTrc(wirelessCompromise(_h3478,_h3517)),','(controlFlow(_h3480,_h3478,_h3473),assert_trace(because(10,rule_desc('Evasion',certain),canspoof(_h3473),[controlFlow(_h3480,_h3478,_h3473),wirelessCompromise(_h3478)]))))).
+:-(mvTrc(can_spoof(_h3473,10)),','(mvTrc(wirelessCompromise(_h3478,_h3517)),','(controlFlow(_h3480,_h3478,_h3473),assert_trace(because(10,rule_desc('Evasion',certain),can_spoof(_h3473),[controlFlow(_h3480,_h3478,_h3473),wirelessCompromise(_h3478)]))))).
 
 :-(mvTrc(canTamper(_h3473,11)),','(mvTrc(execCode(_h3478,root,_h3517)),','(transportsFlow(_h3478,_h3473),assert_trace(because(11,rule_desc('Flow compromised',certain),canTamper(_h3473),[transportsFlow(_h3478,_h3473),execCode(_h3478,root)]))))).
 
-:-(mvTrc(canspoof(_h3473,12)),','(mvTrc(execCode(_h3478,root,_h3517)),','(transportsFlow(_h3478,_h3473),assert_trace(because(12,rule_desc('Enterprise',certain),canspoof(_h3473),[transportsFlow(_h3478,_h3473),execCode(_h3478,root)]))))).
+:-(mvTrc(can_spoof(_h3473,12)),','(mvTrc(execCode(_h3478,root,_h3517)),','(transportsFlow(_h3478,_h3473),assert_trace(because(12,rule_desc('Enterprise',certain),can_spoof(_h3473),[transportsFlow(_h3478,_h3473),execCode(_h3478,root)]))))).
 
 :-(mvTrc(canTamper(_h3473,13)),','(mvTrc(bruteForceIO(_h3478,_h3517)),','(controlFlow(_h3480,_h3478,_h3473),assert_trace(because(13,rule_desc('Discovery',certain),canTamper(_h3473),[controlFlow(_h3480,_h3478,_h3473),bruteForceIO(_h3478)]))))).
 
-:-(mvTrc(canspoof(_h3473,14)),','(mvTrc(arpPoisoning(_h3478,_h3479,_h3529)),','(isGateway(_h3479),','(protocol(_h3473,plaintext),','(controlFlow(_h3478,_h3493,_h3473),assert_trace(because(14,rule_desc('Enterprise',certain),canspoof(_h3473),[controlFlow(_h3478,_h3493,_h3473),protocol(_h3473,plaintext),isGateway(_h3479),arpPoisoning(_h3478,_h3479)]))))))).
+:-(mvTrc(can_spoof(_h3473,14)),','(mvTrc(arpPoisoning(_h3478,_h3479,_h3529)),','(isGateway(_h3479),','(protocol(_h3473,plaintext),','(controlFlow(_h3478,_h3493,_h3473),assert_trace(because(14,rule_desc('Enterprise',certain),can_spoof(_h3473),[controlFlow(_h3478,_h3493,_h3473),protocol(_h3473,plaintext),isGateway(_h3479),arpPoisoning(_h3478,_h3479)]))))))).
 
-:-(mvTrc(canspoof(_h3473,15)),','(mvTrc(arpPoisoning(_h3478,_h3479,_h3524)),','(protocol(_h3473,plaintext),','(controlFlow(_h3478,_h3479,_h3473),assert_trace(because(15,rule_desc('Enterprise',certain),canspoof(_h3473),[controlFlow(_h3478,_h3479,_h3473),protocol(_h3473,plaintext),arpPoisoning(_h3478,_h3479)])))))).
+:-(mvTrc(can_spoof(_h3473,15)),','(mvTrc(arpPoisoning(_h3478,_h3479,_h3524)),','(protocol(_h3473,plaintext),','(controlFlow(_h3478,_h3479,_h3473),assert_trace(because(15,rule_desc('Enterprise',certain),can_spoof(_h3473),[controlFlow(_h3478,_h3479,_h3473),protocol(_h3473,plaintext),arpPoisoning(_h3478,_h3479)])))))).
 
 :-(mvTrc(execCode(_h3473,_h3474,16)),','(mvTrc(principalCompromised(_h3479,_h3523)),','(hasAccount(_h3479,_h3473,_h3474),','(mvTrc(canAccessHost(_h3473,_h3561)),assert_trace(because(16,rule_desc('Reuse of credentials',likely),execCode(_h3473,_h3474),[canAccessHost(_h3473),hasAccount(_h3479,_h3473,_h3474),principalCompromised(_h3479)])))))).
 

@@ -72,7 +72,7 @@ derived(accessMaliciousInput(_host, _principal, _program)).
 
 /* Custom added derived predicates */
 derived(canTamper(_flow)).
-derived(canspoof(_flow)).
+derived(can_spoof(_flow)).
 derived(arpPoisoning(_host1, _host2)).
 
 derived(wirelessCompromise(_host1)).
@@ -95,7 +95,7 @@ meta(advances(_, _)).
 /******************************************************/
 
 :- table canTamper/1.
-:- table canspoof/1.
+:- table can_spoof/1.
 :- table execCode/2.
 :- table netAccess/3.
 :- table netVisibility/3.
@@ -126,7 +126,7 @@ interaction_rule(
     rule_desc('Enterprise', 'likely')).
 
 interaction_rule(
-    (canspoof(Flow) :-
+    (can_spoof(Flow) :-
    	 netAccess(H, Protocol, Port),
      transportsFlow(H, Flow)),
     rule_desc('Access transport network', 'likely')).
@@ -134,9 +134,9 @@ interaction_rule(
 
 interaction_rule(
    (wirelessCompromise(Host) :-
-    attackerLocated(coverzone),
+    attackerLocated(cover_zone),
 	  physicalLayer(Protocol, Host, _),
-    weaknessPhysicalLayer(ac7, Protocol, coverzone)),
+    weaknessPhysicalLayer(ac7, Protocol, cover_zone)),
    rule_desc('Inital Access', 'certain')).
 
 interaction_rule(
@@ -198,7 +198,7 @@ interaction_rule(
    rule_desc('Impact', 'certain')).
 
 interaction_rule(
-    (canspoof(Flow) :-
+    (can_spoof(Flow) :-
    	 wirelessCompromise(Host),
      controlFlow(_, Host, Flow)),
     rule_desc('Evasion', 'certain')).
@@ -213,7 +213,7 @@ interaction_rule(
 
 
 interaction_rule(
-    (canspoof(Flow) :-
+    (can_spoof(Flow) :-
    	 execCode(H, root),
      transportsFlow(H, Flow)),
     rule_desc('Enterprise', 'certain')).
@@ -225,7 +225,7 @@ interaction_rule(
     rule_desc('Discovery', 'certain')).
 
 interaction_rule(
-    (canspoof(Flow) :-
+    (can_spoof(Flow) :-
    	 arpPoisoning(H, K),
      isGateway(K),
      protocol(Flow, plaintext),
@@ -233,7 +233,7 @@ interaction_rule(
     rule_desc('Enterprise', 'certain')).
 
 interaction_rule(
-    (canspoof(Flow) :-
+    (can_spoof(Flow) :-
    	 arpPoisoning(H, K),
      protocol(Flow, plaintext),
      controlFlow(H, K, Flow)),
@@ -329,7 +329,7 @@ interaction_rule(
    rule_desc('ARP Poisoning', 'likely')).
 /*
 interaction_rule(
-   (canspoof(Flow) :-
+   (can_spoof(Flow) :-
     %arpPoisoning(H, K),
     controlFlow(H, _, Flow)),
    rule_desc('Traffic spoofed', 'certain')).
